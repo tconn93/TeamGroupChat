@@ -3,7 +3,7 @@ import axios from "axios";
 class WebUtils {
   static token = localStorage.getItem('token');
 
-  static baseURL = 'https://chat.api.pcolarugby.com:8000';
+  static baseURL = 'https://chat.pcolarugby.com:8000';
 
   static async getToken(isRegister, username, password) {
     const url = isRegister ? this.baseURL+'/register' : this.baseURL+'/login';
