@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rugby Team Chat</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.4.0/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.18.9/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+<!--    const App = () => {-->
+<!--      const [token, setToken] = useState(localStorage.getItem('token'));-->
+<!--      const [user, setUser] = useState(null);-->
+<!--      const [groups, setGroups] = useState([]);-->
+<!--      const [selectedGroup, setSelectedGroup] = useState(null);-->
+<!--      const [messages, setMessages] = useState([]);-->
+<!--      const [events, setEvents] = useState([]);-->
+<!--      const [polls, setPolls] = useState([]);-->
+<!--      const [dmUserId, setDmUserId] = useState(null);-->
+<!--      const [dmMessages, setDmMessages] = useState([]);-->
+
+<!--      useEffect(() => {-->
+<!--        if (token) {-->
+<!--          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;-->
+<!--          fetchGroups();-->
+<!--        }-->
+<!--      }, [token]);-->
+
+<!--      const fetchGroups = async () => {-->
+<!--        const res = await axios.get('http://localhost:5000/groups');-->
+<!--        setGroups(res.data);-->
+<!--      };-->
+
+<!--      const fetchMessages = async (groupId) => {-->
+<!--        const res = await axios.get(`http://localhost:5000/groups/${groupId}/messages`);-->
+<!--        setMessages(res.data);-->
+<!--      };-->
+
+<!--      const fetchEvents = async (groupId) => {-->
+<!--        const res = await axios.get(`http://localhost:5000/groups/${groupId}/events`);-->
+<!--        setEvents(res.data);-->
+<!--      };-->
+
+<!--      const fetchPolls = async (groupId) => {-->
+<!--        const res = await axios.get(`http://localhost:5000/groups/${groupId}/polls`);-->
+<!--        setPolls(res.data);-->
+<!--      };-->
+
+<!--      const fetchDmMessages = async (recipientId) => {-->
+<!--        const res = await axios.get(`http://localhost:5000/dms/${recipientId}`);-->
+<!--        setDmMessages(res.data);-->
+<!--      };-->
+
+<!--      const Login = () => {-->
+<!--        const [username, setUsername] = useState('');-->
+<!--        const [password, setPassword] = useState('');-->
+<!--        const [isRegister, setIsRegister] = useState(false);-->
+
+<!--        const handleSubmit = async (e) => {-->
+<!--          e.preventDefault();-->
+<!--          const url = isRegister ? 'http://localhost:5000/register' : 'http://localhost:5000/login';-->
+<!--          try {-->
+<!--            const res = await axios.post(url, { username, password });-->
+<!--            if (!isRegister) {-->
+<!--              setToken(res.data.token);-->
+<!--              localStorage.setItem('token', res.data.token);-->
+<!--              setUser({ username });-->
+<!--            }-->
+<!--          } catch (err) {-->
+<!--            console.error(err);-->
+<!--          }-->
+<!--        };-->
+
+<!--        return (-->
+<!--          <div className="flex justify-center items-center h-screen">-->
+<!--            <div className="p-6 bg-white rounded shadow-md">-->
+<!--              <h2 className="text-2xl mb-4">{isRegister ? 'Register' : 'Login'}</h2>-->
+<!--              <div className="space-y-4">-->
+<!--                <input-->
+<!--                  type="text"-->
+<!--                  placeholder="Username"-->
+<!--                  value={username}-->
+<!--                  onChange={(e) => setUsername(e.target.value)}-->
+<!--                  className="w-full p-2 border rounded"-->
+<!--                />-->
+<!--                <input-->
+<!--                  type="password"-->
+<!--                  placeholder="Password"-->
+<!--                  value={password}-->
+<!--                  onChange={(e) => setPassword(e.target.value)}-->
+<!--                  className="w-full p-2 border rounded"-->
+<!--                />-->
+<!--                <button-->
+<!--                  onClick={handleSubmit}-->
+<!--                  className="w-full p-2 bg-blue-500 text-white rounded"-->
+<!--                >-->
+<!--                  {isRegister ? 'Register' : 'Login'}-->
+<!--                </button>-->
+<!--                <button-->
+<!--                  onClick={() => setIsRegister(!isRegister)}-->
+<!--                  className="text-blue-500"-->
+<!--                >-->
+<!--                  {isRegister ? 'Switch to Login' : 'Switch to Register'}-->
+<!--                </button>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        );-->
+<!--      };-->
+
+<!--      const Chat = () => {-->
+<!--        const [content, setContent] = useState('');-->
+<!--        const [file, setFile] = useState(null);-->
+
+<!--        const handleSend = async (e) => {-->
+<!--          e.preventDefault();-->
+<!--          const formData = new FormData();-->
+<!--          formData.append('content', content);-->
+<!--          if (file) formData.append('file', file);-->
+<!--          await axios.post(`http://localhost:5000/groups/${selectedGroup}/messages`, formData);-->
+<!--          setContent('');-->
+<!--          setFile(null);-->
+<!--          fetchMessages(selectedGroup);-->
+<!--        };-->
+
+<!--        const handlePin = async (messageId) => {-->
+<!--          await axios.post(`http://localhost:5000/messages/${messageId}/pin`);-->
+<!--          fetchMessages(selectedGroup);-->
+<!--        };-->
+
+<!--        return (-->
+<!--          <div className="flex-1 p-4">-->
+<!--            <h2 className="text-xl mb-4">Group Chat</h2>-->
+<!--            <div className="h-96 overflow-y-auto mb-4 p-4 bg-gray-100 rounded">-->
+<!--              {messages.map((msg) => (-->
+<!--                <div key={msg.id} className={`mb-2 ${msg.is_pinned ? 'bg-yellow-100' : ''}`}>-->
+<!--                  <strong>{msg.username}: </strong>-->
+<!--                  {msg.content}-->
+<!--                  {msg.file_path && (-->
+<!--                    <div>-->
+<!--                      {msg.file_path.match(/\.(jpg|jpeg|png|gif)$/i) ? (-->
+<!--                        <img src={`http://localhost:5000/uploads/${msg.file_path}`} alt="attachment" className="max-w-xs" />-->
+<!--                      ) : (-->
+<!--                        <video src={`http://localhost:5000/uploads/${msg.file_path}`} controls className="max-w-xs" />-->
+<!--                      )}-->
+<!--                    </div>-->
+<!--                  )}-->
+<!--                  <button-->
+<!--                    onClick={() => handlePin(msg.id)}-->
+<!--                    className="text-blue-500 ml-2"-->
+<!--                  >-->
+<!--                    {msg.is_pinned ? 'Unpin' : 'Pin'}-->
+<!--                  </button>-->
+<!--                </div>-->
+<!--              ))}-->
+<!--            </div>-->
+<!--            <div className="flex space-x-2">-->
+<!--              <input-->
+<!--                type="text"-->
+<!--                value={content}-->
+<!--                onChange={(e) => setContent(e.target.value)}-->
+<!--                className="flex-1 p-2 border rounded"-->
+<!--                placeholder="Type a message..."-->
+<!--              />-->
+<!--              <input-->
+<!--                type="file"-->
+<!--                accept="image/*,video/*"-->
+<!--                onChange={(e) => setFile(e.target.files[0])}-->
+<!--                className="p-2"-->
+<!--              />-->
+<!--              <button-->
+<!--                onClick={handleSend}-->
+<!--                className="p-2 bg-blue-500 text-white rounded"-->
+<!--              >-->
+<!--                Send-->
+<!--              </button>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        );-->
+<!--      };-->
+
+<!--      const Calendar = () => {-->
+<!--        const [title, setTitle] = useState('');-->
+<!--        const [description, setDescription] = useState('');-->
+<!--        const [date, setDate] = useState('');-->
+
+<!--        const handleCreateEvent = async (e) => {-->
+<!--          e.preventDefault();-->
+<!--          await axios.post(`http://localhost:5000/groups/${selectedGroup}/events`, {-->
+<!--            title,-->
+<!--            description,-->
+<!--            date-->
+<!--          });-->
+<!--          setTitle('');-->
+<!--          setDescription('');-->
+<!--          setDate('');-->
+<!--          fetchEvents(selectedGroup);-->
+<!--        };-->
+
+<!--        const handleRSVP = async (eventId, status) => {-->
+<!--          await axios.post(`http://localhost:5000/events/${eventId}/rsvp`, { status });-->
+<!--          fetchEvents(selectedGroup);-->
+<!--        };-->
+
+<!--        return (-->
+<!--          <div className="flex-1 p-4">-->
+<!--            <h2 className="text-xl mb-4">Calendar</h2>-->
+<!--            <div className="mb-4">-->
+<!--              <input-->
+<!--                type="text"-->
+<!--                placeholder="Event Title"-->
+<!--                value={title}-->
+<!--                onChange={(e) => setTitle(e.target.value)}-->
+<!--                className="p-2 border rounded mr-2"-->
+<!--              />-->
+<!--              <input-->
+<!--                type="text"-->
+<!--                placeholder="Description"-->
+<!--                value={description}-->
+<!--                onChange={(e) => setDescription(e.target.value)}-->
+<!--                className="p-2 border rounded mr-2"-->
+<!--              />-->
+<!--              <input-->
+<!--                type="datetime-local"-->
+<!--                value={date}-->
+<!--                onChange={(e) => setDate(e.target.value)}-->
+<!--                className="p-2 border rounded mr-2"-->
+<!--              />-->
+<!--              <button-->
+<!--                onClick={handleCreateEvent}-->
+<!--                className="p-2 bg-blue-500 text-white rounded"-->
+<!--              >-->
+<!--                Create Event-->
+<!--              </button>-->
+<!--            </div>-->
+<!--            <div>-->
+<!--              {events.map((event) => (-->
+<!--                <div key={event.id} className="mb-4 p-4 bg-gray-100 rounded">-->
+<!--                  <h3>{event.title}</h3>-->
+<!--                  <p>{event.description}</p>-->
+<!--                  <p>{new Date(event.date).toLocaleString()}</p>-->
+<!--                  <div>-->
+<!--                    <button-->
+<!--                      onClick={() => handleRSVP(event.id, 'yes')}-->
+<!--                      className="p-2 bg-green-500 text-white rounded mr-2"-->
+<!--                    >-->
+<!--                      Yes-->
+<!--                    </button>-->
+<!--                    <button-->
+<!--                      onClick={() => handleRSVP(event.id, 'no')}-->
+<!--                      className="p-2 bg-red-500 text-white rounded mr-2"-->
+<!--                    >-->
+<!--                      No-->
+<!--                    </button>-->
+<!--                    <button-->
+<!--                      onClick={() => handleRSVP(event.id, 'maybe')}-->
+<!--                      className="p-2 bg-yellow-500 text-white rounded"-->
+<!--                    >-->
+<!--                      Maybe-->
+<!--                    </button>-->
+<!--                  </div>-->
+<!--                  <p>RSVPs: {event.rsvps.map(r => `${r.user_id}: ${r.status}`).join(', ')}</p>-->
+<!--                </div>-->
+<!--              ))}-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        );-->
+<!--      };-->
+
+<!--      const Polls = () => {-->
+<!--        const [question, setQuestion] = useState('');-->
+<!--        const [options, setOptions] = useState(['', '']);-->
+
+<!--        const handleCreatePoll = async (e) => {-->
+<!--          e.preventDefault();-->
+<!--          await axios.post(`http://localhost:5000/groups/${selectedGroup}/polls`, {-->
+<!--            question,-->
+<!--            options-->
+<!--          });-->
+<!--          setQuestion('');-->
+<!--          setOptions(['', '']);-->
+<!--          fetchPolls(selectedGroup);-->
+<!--        };-->
+
+<!--        const handleVote = async (pollId, optionId) => {-->
+<!--          await axios.post(`http://localhost:5000/polls/${pollId}/vote`, { option_id: optionId });-->
+<!--          fetchPolls(selectedGroup);-->
+<!--        };-->
+
+<!--        return (-->
+<!--          <div className="flex-1 p-4">-->
+<!--            <h2 className="text-xl mb-4">Polls</h2>-->
+<!--            <div className="mb-4">-->
+<!--              <input-->
+<!--                type="text"-->
+<!--                placeholder="Poll Question"-->
+<!--                value={question}-->
+<!--                onChange={(e) => setQuestion(e.target.value)}-->
+<!--                className="p-2 border rounded mr-2"-->
+<!--              />-->
+<!--              {options.map((opt, idx) => (-->
+<!--                <input-->
+<!--                  key={idx}-->
+<!--                  type="text"-->
+<!--                  placeholder={`Option ${idx + 1}`}-->
+<!--                  value={opt}-->
+<!--                  onChange={(e) => {-->
+<!--                    const newOptions = [...options];-->
+<!--                    newOptions[idx] = e.target.value;-->
+<!--                    setOptions(newOptions);-->
+<!--                  }}-->
+<!--                  className="p-2 border rounded mr-2 mb-2"-->
+<!--                />-->
+<!--              ))}-->
+<!--              <button-->
+<!--                onClick={() => setOptions([...options, ''])}-->
+<!--                className="p-2 bg-gray-500 text-white rounded mr-2"-->
+<!--              >-->
+<!--                Add Option-->
+<!--              </button>-->
+<!--              <button-->
+<!--                onClick={handleCreatePoll}-->
+<!--                className="p-2 bg-blue-500 text-white rounded"-->
+<!--              >-->
+<!--                Create Poll-->
+<!--              </button>-->
+<!--            </div>-->
+<!--            <div>-->
+<!--              {polls.map((poll) => (-->
+<!--                <div key={poll.id} className="mb-4 p-4 bg-gray-100 rounded">-->
+<!--                  <h3>{poll.question}</h3>-->
+<!--                  {poll.options.map((opt) => (-->
+<!--                    <div key={opt.id}>-->
+<!--                      <button-->
+<!--                        onClick={() => handleVote(poll.id, opt.id)}-->
+<!--                        className="p-2 bg-blue-500 text-white rounded mr-2"-->
+<!--                      >-->
+<!--                        {opt.text} ({opt.votes} votes)-->
+<!--                      </button>-->
+<!--                    </div>-->
+<!--                  ))}-->
+<!--                </div>-->
+<!--              ))}-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        );-->
+<!--      };-->
+
+<!--      const DMs = () => {-->
+<!--        const [content, setContent] = useState('');-->
+
+<!--        const handleSendDM = async (e) => {-->
+<!--          e.preventDefault();-->
+<!--          await axios.post(`http://localhost:5000/dms/${dmUserId}`, { content });-->
+<!--          setContent('');-->
+<!--          fetchDmMessages(dmUserId);-->
+<!--        };-->
+
+<!--        return (-->
+<!--          <div className="flex-1 p-4">-->
+<!--            <h2 className="text-xl mb-4">DM with User {dmUserId}</h2>-->
+<!--            <div className="h-96 overflow-y-auto mb-4 p-4 bg-gray-100 rounded">-->
+<!--              {dmMessages.map((msg) => (-->
+<!--                <div key={msg.id} className="mb-2">-->
+<!--                  <strong>{msg.username}: </strong>{msg.content}-->
+<!--                </div>-->
+<!--              ))}-->
+<!--            </div>-->
+<!--            <div className="flex">-->
+<!--              <input-->
+<!--                type="text"-->
+<!--                value={content}-->
+<!--                onChange={(e) => setContent(e.target.value)}-->
+<!--                className="flex-1 p-2 border rounded mr-2"-->
+<!--                placeholder="Type a message..."-->
+<!--              />-->
+<!--              <button-->
+<!--                onClick={handleSendDM}-->
+<!--                className="p-2 bg-blue-500 text-white rounded"-->
+<!--              >-->
+<!--                Send-->
+<!--              </button>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        );-->
+<!--      };-->
+
+<!--      if (!token) return <Login />;-->
+
+<!--      return (-->
+<!--        <div className="flex h-screen">-->
+<!--          <div className="w-1/4 p-4 bg-gray-200">-->
+<!--            <h2 className="text-xl mb-4">Groups</h2>-->
+<!--            {groups.map((group) => (-->
+<!--              <div-->
+<!--                key={group.id}-->
+<!--                onClick={() => {-->
+<!--                  setSelectedGroup(group.id);-->
+<!--                  setDmUserId(null);-->
+<!--                  fetchMessages(group.id);-->
+<!--                  fetchEvents(group.id);-->
+<!--                  fetchPolls(group.id);-->
+<!--                }}-->
+<!--                className="p-2 cursor-pointer hover:bg-gray-300"-->
+<!--              >-->
+<!--                {group.name}-->
+<!--              </div>-->
+<!--            ))}-->
+<!--            <h2 className="text-xl mb-4 mt-4">DMs</h2>-->
+<!--            <input-->
+<!--              type="number"-->
+<!--              placeholder="User ID for DM"-->
+<!--              onChange={(e) => {-->
+<!--                setDmUserId(e.target.value);-->
+<!--                setSelectedGroup(null);-->
+<!--                if (e.target.value) fetchDmMessages(e.target.value);-->
+<!--              }}-->
+<!--              className="p-2 border rounded w-full"-->
+<!--            />-->
+<!--          </div>-->
+<!--          {selectedGroup ? (-->
+<!--            <div className="flex-1 flex flex-col">-->
+<!--              <Chat />-->
+<!--              <Calendar />-->
+<!--              <Polls />-->
+<!--            </div>-->
+<!--          ) : dmUserId ? (-->
+<!--            <DMs />-->
+<!--          ) : (-->
+<!--            <div className="flex-1 p-4">Select a group or user to start chatting</div>-->
+<!--          )}-->
+<!--        </div>-->
+<!--      );-->
+<!--    };-->
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
